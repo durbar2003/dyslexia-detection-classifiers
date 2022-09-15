@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split 
 import seaborn as sns
 
-df=pd.read_excel("/content/final modified speech data.xlsx")
+df=pd.read_excel("./content/speech_data.xlsx")
 
 df.head()
 
