@@ -265,7 +265,7 @@ new_df.head()
 
 new_df=new_df.drop(['Avg'],axis=1)
 
-train,test=train_test_split(new_df,test_size=0.3,random_state=2)
+train,test=train_test_split(new_df,test_size=0.4,random_state=2)
 
 print(train.shape,test.shape)
 
