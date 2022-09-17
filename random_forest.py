@@ -1,24 +1,31 @@
-#importing libraries
+#importing the libraries
 
-import pandas as pd
+import itertools
+import sklearn.metrics as metrics
 import numpy as np
-import seaborn as sns
+import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split 
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix,precision_score,recall_score
+import seaborn as sns
+from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
-#loading the dataset
 
 df=pd.read_excel("./content/speech_data.xlsx")
+
 df.head()
+
 df.shape
+
 df.isnull().sum()
+
 df.iloc[67] # getting certain rows
 
-#cleaning data
+"""**0.1.1 1. Cleaning Data**"""
 
 clean_df=pd.DataFrame([],columns=df.columns)
+
 for i in range(67):
   clean_df=clean_df.append(df.iloc[i])
 
@@ -34,37 +41,38 @@ clean_df['tarp'].iloc[56]="tarp"
 
 clean_df.head(2)
 
-#checking if there are any null values
+"""**0.1.2  2. Checking if their is any null values**"""
 
 print(clean_df.isnull().sum().sort_values(ascending=False))
 
-#filling empty values
+"""**0.1.3 3. Filling Empty Value**"""
 
 clean_df=clean_df.fillna(method='ffill')
 
 print(clean_df.isnull().sum().sort_values(ascending=False)[:5])
 
-#separating datasets
+"""**0.1.4 4. Seperating datasets**"""
 
 original_words=clean_df.columns
 original_words=original_words[1:]
 print(original_words)
 print(len(original_words))
 
-#removing numbers from strings
+"""**0.1.5 Removing numbers from strings**"""
 
-import re 
+import re # regular expression to remove irelevant numbers and symbols
 temp=" ".join(original_words)
 temp=temp.lower()
 original_words=re.findall("[a-zA-Z]+",temp)
 print(len(original_words))
 
-#converting to lower case
+# converting to lower case
 
 for i in range(0,len(original_words)):
   clean_df[original_words[i]]=clean_df[original_words[i]].str.lower()
+# Another way clean_df['column_name'].apply(lambda x : x.lower())
 
-#calculating errors and creating model
+"""**0.1.6 Calculating Errors and creating models**"""
 
 uttered_words=clean_df.values
 uttered_words=uttered_words[:clean_df.shape[0],1:]
@@ -84,6 +92,7 @@ def hammingDist(str1, str2):
             count += 1
         i += 1
     return count
+
 
 class dyslexia:
 
@@ -110,7 +119,7 @@ class dyslexia:
     else:
       return False
 
-      # Total Error in the given database
+  # Total Error in the given database
   def totalError(self,original_words,uttered_words):
     m_error=0
     s_error=0
@@ -133,7 +142,7 @@ class dyslexia:
           n_error+=1
     return m_error,s_error,n_error
   
-   # passing original words ,ith student uttered words,student number(1,length of original words)
+  # passing original words ,ith student uttered words,student number(1,length of original words)
   def error(self,original_words,student,stud_n):
     m_error=0
     s_error=0
@@ -254,9 +263,11 @@ new_df.head()
 
 new_df=new_df.drop(['Avg'],axis=1)
 
-train,test=train_test_split(new_df,test_size=0.5,random_state=2)
+train,test=train_test_split(new_df,test_size=0.3,random_state=2)
 
 print(train.shape,test.shape)
+
+
 
 X=train.values
 Y=test.values
@@ -264,37 +275,24 @@ Y=test.values
 X_train=X[:,:-1]
 Y_train=X[:,-1]
 X_test=Y[:,:-1]
-Y_test=Y[:,-1] 
-# from sklearn.model_selection import train_test_split  
-# X_train, X_test, Y_test, Y_train= train_test_split(X, Y, test_size= 0.25, random_state=0)
-# from sklearn.preprocessing import StandardScaler    
-# st_x= StandardScaler()    
-# X_train= st_x.fit_transform(X_train)    
-# X_test= st_x.transform(X_test)  
-error = []
-# Calculating error for K values between 1 and 30
-for i in range(1, 30):
-    knn = KNeighborsClassifier(n_neighbors=i)
-    knn.fit(X_train, Y_train)
-    pred_i = knn.predict(X_test)
-    error.append(np.mean(pred_i != Y_test))
-plt.figure(figsize=(12, 6))
-plt.plot(range(1, 30), error, color='red', linestyle='dashed', marker='o',
-         markerfacecolor='blue', markersize=10)
-plt.title('Error Rate K Value')
-plt.xlabel('K Value')
-plt.ylabel('Mean Error')
-print("Minimum error:-",min(error),"at K =",error.index(min(error))+1)
+Y_test=Y[:,-1]
 
-classifier= KNeighborsClassifier(n_neighbors=3)  
-classifier.fit(X_train, Y_train)
-y_pred= classifier.predict(X_test) 
-from sklearn.metrics import confusion_matrix  
-cm= confusion_matrix(Y_test, y_pred)
 
-print(cm)
 
-accuracy=accuracy_score(Y_test, y_pred)
 
-print(accuracy)
-plt.show()
+random_forest = RandomForestClassifier(n_estimators=100)
+random_forest.fit(X_train, Y_train)
+#Predict Output
+rf_predicted = random_forest.predict(X_test)
+
+random_forest_score = round(random_forest.score(X_train, Y_train) * 100, 2)
+random_forest_score_test = round(random_forest.score(X_test, Y_test) * 100, 2)
+print('Random Forest Score: \n', random_forest_score)
+print('Random Forest Test Score: \n', random_forest_score_test)
+print('Accuracy: \n', accuracy_score(Y_test,rf_predicted))
+print(confusion_matrix(Y_test,rf_predicted))
+print(classification_report(Y_test,rf_predicted))
+sns.heatmap(confusion_matrix(Y_test,rf_predicted),annot=True,fmt="d")
+
+
+
