@@ -279,6 +279,7 @@ Y_test=Y[:,-1]
 
 global_features = []
 labels          = []
+seed      = 9
 # error rate
 def error_rate(xtrain, ytrain, x, opts):
     # parameters
