@@ -304,7 +304,7 @@ optimizer = ps.discrete.BinaryPSO(n_particles=30, dimensions=dimensions, options
 optimizer.reset()
 
 # Perform optimization
-cost, pos = optimizer.optimize(f, print_step=100, iters=1000, verbose=2)
+cost, pos = optimizer.optimize(f, iters=1000, verbose=2)
 
 X_selected_features = X[:,pos==1]
 
