@@ -10,8 +10,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.ensemble import RandomForestClassifier
-from numpy.random import rand
 
 df=pd.read_excel("./content/speech_data.xlsx")
 
@@ -268,6 +266,8 @@ train,test=train_test_split(new_df,test_size=0.3,random_state=2)
 
 print(train.shape,test.shape)
 
+
+
 X=train.values
 Y=test.values
 
@@ -276,273 +276,42 @@ Y_train=X[:,-1]
 X_test=Y[:,:-1]
 Y_test=Y[:,-1]
 
+classifier = linear_model.LogisticRegression()
 
-global_features = []
-labels          = []
-seed      = 9
-# error rate
-def error_rate(xtrain, ytrain, x, opts):
-    # parameters
-    k     = opts['k']
-    fold  = opts['fold']
-    num_trees=opts['num_trees']
-    seeds=['seeds']
-    xt    = fold['xt']
-    yt    = fold['yt']
-    xv    = fold['xv']
-    yv    = fold['yv']
-    
-    # Number of instances
-    num_train = np.size(xt, 0)
-    num_valid = np.size(xv, 0)
-    # Define selected features
-    xtrain  = xt[:, x == 1]
-    ytrain  = yt.reshape(num_train)  # Solve bug
-    xvalid  = xv[:, x == 1]
-    yvalid  = yv.reshape(num_valid)  # Solve bug   
-    # Training
-    #mdl     = KNeighborsClassifier(n_neighbors = k)
-    mdl  = RandomForestClassifier(n_estimators=num_trees, random_state=seed)
-    mdl.fit(xtrain, ytrain)
-    # Prediction
-    ypred   = mdl.predict(xvalid)
-    acc     = np.sum(yvalid == ypred) / num_valid
-    error   = 1 - acc
-    
-    return error
-
-
-# Error rate & Feature size
-def Fun(xtrain, ytrain, x, opts):
-    # Parameters
-    alpha    = 0.99
-    beta     = 1 - alpha
-    # Original feature size
-    max_feat = len(x)
-    # Number of selected features
-    num_feat = np.sum(x == 1)
-    # Solve if no feature selected
-    if num_feat == 0:
-        cost  = 1
+def f_per_particle(m, alpha):
+    total_features = 13
+    if np.count_nonzero(m) == 0:
+        X_subset = X
     else:
-        # Get error rate
-        error = error_rate(xtrain, ytrain, x, opts)
-        # Objective function
-        cost  = alpha * error + beta * (num_feat / max_feat)
-        
-    return cost
+        X_subset = X[:,m==1]
+    classifier.fit(X_subset, Y_train)
+    P = (classifier.predict(X_subset) == Y_train).mean()
+    j = (alpha * (1.0 - P)
+        + (1.0 - alpha) * (1 - (X_subset.shape[1] / total_features)))
+    return j
 
+def f(x, alpha=0.88):
+    n_particles = x.shape[0]
+    j = [f_per_particle(x[i], alpha) for i in range(n_particles)]
+    return np.array(j)
 
+    # Initialize swarm, arbitrary
+options = {'c1': 0.5, 'c2': 0.5, 'w':0.9, 'k': 30, 'p':2}
 
-def init_position(lb, ub, N, dim):
-    X = np.zeros([N, dim], dtype='float')
-    for i in range(N):
-        for d in range(dim):
-            X[i,d] = lb[0,d] + (ub[0,d] - lb[0,d]) * rand()        
-    
-    return X
+# Call instance of PS
+dimensions = 4 # dimensions should be the number of features
+optimizer = ps.discrete.BinaryPSO(n_particles=30, dimensions=dimensions, options=options)
+optimizer.reset()
 
+# Perform optimization
+cost, pos = optimizer.optimize(f, iters=1000, verbose=2)
 
-def init_velocity(lb, ub, N, dim):
-    V    = np.zeros([N, dim], dtype='float')
-    Vmax = np.zeros([1, dim], dtype='float')
-    Vmin = np.zeros([1, dim], dtype='float')
-    # Maximum & minimum velocity
-    for d in range(dim):
-        Vmax[0,d] = (ub[0,d] - lb[0,d]) / 2
-        Vmin[0,d] = -Vmax[0,d]
-        
-    for i in range(N):
-        for d in range(dim):
-            V[i,d] = Vmin[0,d] + (Vmax[0,d] - Vmin[0,d]) * rand()
-        
-    return V, Vmax, Vmin
+X_selected_features = X[:,pos==1]
 
+df1 = pd.DataFrame(X_selected_features)
+df1['class'] = pd.Series(Y_train)
 
-def binary_conversion(X, thres, N, dim):
-    Xbin = np.zeros([N, dim], dtype='int')
-    for i in range(N):
-        for d in range(dim):
-            if X[i,d] > thres:
-                Xbin[i,d] = 1
-            else:
-                Xbin[i,d] = 0
-    
-    return Xbin
+sns.pairplot(df, hue='class')
+sns.pairplot(df1, hue='class')
 
-
-def boundary(x, lb, ub):
-    if x < lb:
-        x = lb
-    if x > ub:
-        x = ub
-    
-    return x
-    
-
-def pso(xtrain, ytrain, opts):
-    # Default Parameters
-    ub    = 1
-    lb    = 0
-    thres = 0.5
-    w     = 0.9    # inertia weight
-    c1    = 2      # acceleration factor
-    c2    = 2      # acceleration factor
-    
-    N        = opts['N']
-    max_iter = opts['T']
-    if 'w' in opts:
-        w    = opts['w']
-    if 'c1' in opts:
-        c1   = opts['c1']
-    if 'c2' in opts:
-        c2   = opts['c2'] 
-    
-    # Dimension
-    dim = np.size(xtrain, 1)
-    if np.size(lb) == 1:
-        ub = ub * np.ones([1, dim], dtype='float')
-        lb = lb * np.ones([1, dim], dtype='float')
-    
-    # Initialize position & velocity
-    X             = init_position(lb, ub, N, dim)
-  
-    V, Vmax, Vmin = init_velocity(lb, ub, N, dim) 
-    
-    # Pre
-    fit   = np.zeros([N, 1], dtype='float')
-    Xgb   = np.zeros([1, dim], dtype='float')
-    fitG  = float('inf')
-    Xpb   = np.zeros([N, dim], dtype='float')
-    fitP  = float('inf') * np.ones([N, 1], dtype='float')
-    curve = np.zeros([1, max_iter], dtype='float') 
-    t     = 0
-    
-    #Stopping Criteria
-    while t < max_iter:
-        # Binary conversion
-        Xbin = binary_conversion(X, thres, N, dim)
-        
-        # Fitness
-        for i in range(N):
-            fit[i,0] = Fun(xtrain, ytrain, Xbin[i,:], opts)
-            if fit[i,0] < fitP[i,0]:
-                Xpb[i,:]  = X[i,:]
-                fitP[i,0] = fit[i,0]
-            if fitP[i,0] < fitG:
-                Xgb[0,:]  = Xpb[i,:]
-                fitG      = fitP[i,0]
-        
-        Gbin2       = binary_conversion(Xgb, thres, 1, dim) 
-        Gbin2       = Gbin2.reshape(dim)
-        pos2        = np.asarray(range(0, dim))
-        sel_index2  = pos2[Gbin2 == 1]
-        
-       
-        print("Feature Subset after {} iterations {}: ".format(t+1,sel_index2))
-        
-        # Store result
-        curve[0,t] = fitG.copy()
-        
-        print("Iteration:", t + 1)
-        
-        print("Best (PSO):", curve[0,t])
-        t += 1
-        
-        
-        for i in range(N):
-            for d in range(dim):
-                # Update velocity
-                r1     = rand()
-                r2     = rand()
-                V[i,d] = w * V[i,d] + c1 * r1 * (Xpb[i,d] - X[i,d]) + c2 * r2 * (Xgb[0,d] - X[i,d]) 
-                # Boundary
-                V[i,d] = boundary(V[i,d], Vmin[0,d], Vmax[0,d])
-                # Update position
-                X[i,d] = X[i,d] + V[i,d]
-                # Boundary
-                X[i,d] = boundary(X[i,d], lb[0,d], ub[0,d])
-           
-                
-    # Best feature subset
-    Gbin       = binary_conversion(Xgb, thres, 1, dim) 
-    Gbin       = Gbin.reshape(dim)
-    pos        = np.asarray(range(0, dim))    
-    sel_index  = pos[Gbin == 1]
-    num_feat   = len(sel_index)
-    # Create dictionary
-    pso_data = {'sf': sel_index, 'c': curve, 'nf': num_feat}
-    
-    return pso_data    
-
-gasf=global_features
-
-label=global_labels
-
-# split data into train & validation (70 -- 30)
-xtrain, xtest, ytrain, ytest = train_test_split(gasf, label, test_size=0.3, random_state=0, stratify=label)
-fold = {'xt':xtrain, 'yt':ytrain, 'xv':xtest, 'yv':ytest}
-
-# # parameter
-# k    = 5     # k-value in KNN
-# N    = 10    # number of particles
-# T    = 100   # maximum number of iterations
-# w    = 0.9   # inertia weight
-# c1   = 2     # cognitive factor
-# c2   = 2     # social factor 
-
-# parameter
-k    = 8     # k-value in KNN
-num_trees=100  #random forest
-seeds=9       #rf
-N    = 20    # number of particles
-T    = 10   # maximum number of iterations
-w    = 0.5   # inertia weight
-c1   = 2     # cognitive factor
-c2   = 2     # social factor 
-opts = {'k':k, 'fold':fold, 'N':N, 'T':T, 'w':w, 'c1':c1, 'c2':c2, 'num_trees':num_trees, 'seeds':seeds}
-
-# perform feature selection
-fmdl = pso(gasf, label, opts)
-sf   = fmdl['sf']
-print("fmdl",fmdl);
-
-# model with selected features
-num_train = np.size(xtrain, 0)
-num_valid = np.size(xtest, 0)
-x_train   = xtrain[:, sf]
-y_train   = ytrain.reshape(num_train) 
-x_valid   = xtest[:, sf]
-y_valid   = ytest.reshape(num_valid)  
-
-#Modelling using KNN
-#mdl       = KNeighborsClassifier(n_neighbors = k) 
-
-#Modelling using Random Forest
-mdl  = RandomForestClassifier(n_estimators=num_trees, random_state=seed)
-mdl.fit(x_train, y_train)
-
-# Accuracy
-y_pred    = mdl.predict(x_valid)
-Acc       = np.sum(y_valid == y_pred)  / num_valid
-print("Accuracy:", 100 * Acc)
-
-# number of selected features
-num_feat = fmdl['nf']
-print("Feature Size:", num_feat)
-n_sf=[]
-print(sf)
-
-# plot convergence
-curve   = fmdl['c']
-curve   = curve.reshape(np.size(curve,1))
-x       = np.arange(0, opts['T'], 1.0) + 1.0
-
-fig, ax = plt.subplots()
-ax.plot(x, curve, 'o-')
-ax.set_xlabel('Number of Iterations')
-ax.set_ylabel('Fitness')
-ax.set_title('PSO')
-ax.grid()
 plt.show()
-
