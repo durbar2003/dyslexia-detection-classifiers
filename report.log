@@ -5,3 +5,5 @@
 2022-09-18 16:29:53,397 - pyswarms.discrete.binary - INFO - Optimize for 1000 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.9, 'k': 30, 'p': 2}
 2022-09-18 16:31:54,808 - pyswarms.discrete.binary - INFO - Optimization finished | best cost: 0.08307692307692308, best pos: [1 1 1 1]
 2022-09-18 16:32:37,410 - pyswarms.discrete.binary - INFO - Optimize for 1000 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.9, 'k': 30, 'p': 2}
+2022-09-18 16:33:03,842 - pyswarms.discrete.binary - INFO - Optimize for 1000 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.9, 'k': 30, 'p': 2}
+2022-09-18 16:35:00,136 - pyswarms.discrete.binary - INFO - Optimization finished | best cost: 0.08307692307692308, best pos: [1 1 1 1]
