@@ -12,7 +12,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.neural_network import MLPClassifier
 
 df=pd.read_excel("./content/speech_data.xlsx")
 
@@ -265,7 +265,7 @@ new_df.head()
 
 new_df=new_df.drop(['Avg'],axis=1)
 
-train,test=train_test_split(new_df,test_size=0.4,random_state=2)
+train,test=train_test_split(new_df,test_size=0.3,random_state=2)
 
 print(train.shape,test.shape)
 
@@ -279,16 +279,19 @@ Y_train=X[:,-1]
 X_test=Y[:,:-1]
 Y_test=Y[:,-1]
 
-def performance_eval(clf,X_test):
-    y_pred = clf.predict(X_test)
-    print(f'Accuracy : {accuracy_score(Y_test,y_pred)}\n')
-    print('   ------------ Classification Report -----------')
-    print(classification_report(Y_test,y_pred))
-    print('   ------------ Confusion Matrix -------------- ')
-    sns.set(rc={'figure.figsize':(10,6)})
-    sns.heatmap(confusion_matrix(Y_test,y_pred),annot = True,fmt = 'd')
+#MLP classifier
+clf = MLPClassifier(hidden_layer_sizes=(50,50,50),activation='tanh', max_iter=500, alpha=1e-4,
+                     solver='lbfgs', verbose=10,  random_state=21,tol=0.000000001)
+clf.fit(X_train, Y_train)
+#Predict Output 
+y_pred = clf.predict(X_test)
+mlp_score = round(clf.score(X_train, Y_train) * 100, 2)
+mlp_score_test = round(clf.score(X_test, Y_test) * 100, 2)
+print('MLP classifier Score: \n', mlp_score)
+print('MLP classifier Test Score: \n', mlp_score_test)
+print('Accuracy: \n', accuracy_score(Y_test,y_pred))
+print(confusion_matrix(Y_test, y_pred))
+print(classification_report(Y_test,y_pred))
+sns.heatmap(confusion_matrix(Y_test,y_pred),annot=True,fmt="d")
 
 
-clf_nb = MultinomialNB()
-clf_nb.fit(X_train, Y_train)
-performance_eval(clf_nb,X_test)
