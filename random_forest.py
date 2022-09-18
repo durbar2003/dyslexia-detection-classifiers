@@ -1,13 +1,11 @@
 #importing the libraries
 
-import itertools
-import sklearn.metrics as metrics
-import numpy as np
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix,precision_score,recall_score
+from sklearn.metrics import confusion_matrix
 import seaborn as sns
 from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
