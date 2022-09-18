@@ -1,15 +1,9 @@
 #importing the libraries
 
-import numpy as np
 import pandas as pd
-from scipy.stats import mode
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.naive_bayes import MultinomialNB
