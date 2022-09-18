@@ -306,12 +306,12 @@ optimizer.reset()
 # Perform optimization
 cost, pos = optimizer.optimize(f, iters=1000, verbose=2)
 
-X_selected_features = X[:,pos==1]
+X_selected_features = X_train[:,pos==1]
 
 df1 = pd.DataFrame(X_selected_features)
 df1['class'] = pd.Series(Y_train)
 
-sns.pairplot(df, hue='class')
-sns.pairplot(df1, hue='class')
+# sns.pairplot(df, hue='class')
+# sns.pairplot(df1, hue='class')
 
 plt.show()
