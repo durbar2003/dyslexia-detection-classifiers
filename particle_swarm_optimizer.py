@@ -11,6 +11,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.ensemble import RandomForestClassifier
+from numpy.random import rand
 
 df=pd.read_excel("./content/speech_data.xlsx")
 
