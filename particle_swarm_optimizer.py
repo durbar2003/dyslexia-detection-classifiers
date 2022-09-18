@@ -299,7 +299,7 @@ def f(x, alpha=0.88):
 options = {'c1': 0.5, 'c2': 0.5, 'w':0.9, 'k': 30, 'p':2}
 
 # Call instance of PSO
-dimensions = 13 # dimensions should be the number of features
+dimensions = 4 # dimensions should be the number of features
 optimizer = ps.discrete.BinaryPSO(n_particles=30, dimensions=dimensions, options=options)
 optimizer.reset()
 
