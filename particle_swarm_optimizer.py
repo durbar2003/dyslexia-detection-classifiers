@@ -295,4 +295,23 @@ def f(x, alpha=0.88):
     j = [f_per_particle(x[i], alpha) for i in range(n_particles)]
     return np.array(j)
 
+    # Initialize swarm, arbitrary
+options = {'c1': 0.5, 'c2': 0.5, 'w':0.9, 'k': 30, 'p':2}
 
+# Call instance of PSO
+dimensions = 13 # dimensions should be the number of features
+optimizer = ps.discrete.BinaryPSO(n_particles=30, dimensions=dimensions, options=options)
+optimizer.reset()
+
+# Perform optimization
+cost, pos = optimizer.optimize(f, print_step=100, iters=1000, verbose=2)
+
+X_selected_features = X[:,pos==1]
+
+df1 = pd.DataFrame(X_selected_features)
+df1['class'] = pd.Series(Y)
+
+sns.pairplot(df, hue='class')
+sns.pairplot(df1, hue='class')
+
+plt.show()
