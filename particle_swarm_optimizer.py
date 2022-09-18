@@ -276,6 +276,23 @@ Y_train=X[:,-1]
 X_test=Y[:,:-1]
 Y_test=Y[:,-1]
 
+classifier = linear_model.LogisticRegression()
 
+def f_per_particle(m, alpha):
+    total_features = 13
+    if np.count_nonzero(m) == 0:
+        X_subset = X
+    else:
+        X_subset = X[:,m==1]
+    classifier.fit(X_subset, Y)
+    P = (classifier.predict(X_subset) == Y).mean()
+    j = (alpha * (1.0 - P)
+        + (1.0 - alpha) * (1 - (X_subset.shape[1] / total_features)))
+    return j
+
+def f(x, alpha=0.88):
+    n_particles = x.shape[0]
+    j = [f_per_particle(x[i], alpha) for i in range(n_particles)]
+    return np.array(j)
 
 
