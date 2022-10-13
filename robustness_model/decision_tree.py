@@ -2,11 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.metrics import classification_report, accuracy_score
 
 df=pd.read_excel("./content/speech_data_second.xlsx")
 
@@ -259,7 +255,7 @@ new_df.head()
 
 new_df=new_df.drop(['Avg'],axis=1)
 
-train,test=train_test_split(new_df,test_size=0.3,random_state=2)
+train,test=train_test_split(new_df,test_size=0.5,random_state=2)
 
 print(train.shape,test.shape)
 
@@ -273,17 +269,12 @@ Y_train=X[:,-1]
 X_test=Y[:,:-1]
 Y_test=Y[:,-1]
 
-def performance_eval(clf,X_test):
-    y_pred = clf.predict(X_test)
-    print(f'Accuracy : {accuracy_score(Y_test,y_pred)}\n')
-    print('   ------------ Classification Report -----------')
-    print(classification_report(Y_test,y_pred))
-    print('   ------------ Confusion Matrix -------------- ')
-    sns.set(rc={'figure.figsize':(10,6)})
-    sns.heatmap(confusion_matrix(Y_test,y_pred),annot = True,fmt = 'd')
 
-clf_adb = AdaBoostClassifier()
-clf_adb.fit(X_train, Y_train)
-performance_eval(clf_adb,X_test)
 
+from sklearn.tree import DecisionTreeClassifier
+dtc = DecisionTreeClassifier()
+dtc.fit(X_train, Y_train)
+
+dtc_acc = dtc.score(X_test, Y_test)*100 
+print("Decision Tree Test Accuracy {:.2f}%".format(dtc_acc))
 
