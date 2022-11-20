@@ -21,15 +21,20 @@ df.iloc[67] # getting certain rows
 """**0.1.1 1. Cleaning Data**"""
 
 clean_df=pd.DataFrame([],columns=df.columns)
+tmp=[]
 
 for i in range(67):
-  clean_df=clean_df.append(df.iloc[i])
+  tmp.append(df.iloc[i])
+  clean_df=pd.concat(tmp)
+
 
 for i in range(68,100):
-  clean_df=clean_df.append(df.iloc[i])
+   tmp.append(df.iloc[i])
+   clean_df=pd.concat(tmp)
 
 for i in range(101,df.shape[0]):
-  clean_df=clean_df.append(df.iloc[i])
+   tmp.append(df.iloc[i])
+   clean_df=pd.concat(tmp)
 
 clean_df.shape
 
@@ -39,13 +44,13 @@ clean_df.head(2)
 
 """**0.1.2  2. Checking if their is any null values**"""
 
-print(clean_df.isnull().sum().sort_values(ascending=False))
+print(clean_df.isnull().sum().astype(int).sort_values(ascending=False))
 
 """**0.1.3 3. Filling Empty Value**"""
 
 clean_df=clean_df.fillna(method='ffill')
 
-print(clean_df.isnull().sum().sort_values(ascending=False)[:5])
+print(clean_df.isnull().sum().astype(str).sort_values(ascending=False)[:5])
 
 """**0.1.4 4. Seperating datasets**"""
 
