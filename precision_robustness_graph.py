@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots()
 
-y = [0.953, 0.987, 0.981, 0.964, 0.978, 0.956, 0.988, 0.933, 0.968]
+y = [0.971, 0.967, 0.975, 0.950, 0.946, 0.968, 0.978, 0.965, 0.984]
 x = ['Adaboost', 'Decisison Tree', 'KNN-Classifier', 'LDA-Classifier', 'Logistic Regression', 'MLP-Classifier', 'Naive Bayes', 'Random Forest', 'SVM']
 
 plt.bar(x, y, color ='blue', width = 0.4)
